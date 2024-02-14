@@ -116,17 +116,14 @@ namespace DJ {
       auto tok = tokens.begin();
       using Iter = decltype(tok);
 
-      static auto cmp = [](Token token, Type type, const char *value = "") {
-        if (token.type != type) return false;
-        auto p0(value), p1(token.start);
-
-        while (*p0 != '\0') {
-          if (*p0 != *p1) return false;
-          ++p0;
-          ++p1;
-        }
-        
+      static auto cmpstr = [](Token token, const char *value) {
+        auto p0 = value, p1 = token.start;
+        while (*p0 != '\0') if (*p0++ != *p1++) return false;
         return true;
+      };
+
+      static auto cmp = [](Token token, Type type, const char *value = "") {
+        return token.type == type && cmpstr(token, value);
       };
       
       static struct {
@@ -134,11 +131,10 @@ namespace DJ {
           Node *node;
 
           if (node = parseIf(tok)) return node;
-          if (node = parseFn(tok)) return node;
-          if (node = parseVar(tok)) return node;
-          if (node = parseExpr(tok)) return node;
-
-          return node;
+          else if (node = parseFn(tok)) return node;
+          else if (node = parseVar(tok)) return node;
+          else if (node = parseExpr(tok)) return node;
+          else return node;
         }
 
         Node *parseIf(Iter &tok) {
@@ -149,15 +145,14 @@ namespace DJ {
               Util::LinkedList<Node *> body, elses, other;
 
               while (true) {
-                auto stmt = parseStmt(++tok);
+                auto stmt = parseStmt(tok);
                 if (stmt) body.push_back(stmt);
                 else break;
               }
 
-              if (!!tok && !cmp(*tok++, Type::Symbol, "}")) throw Util::Exception("if[2]");
-
-              return new If(expr, body, elses, other);
-            } else throw Util::Exception("if[1]");
+              if (!tok || !cmp(*tok++, Type::Symbol, "}")) throw Util::Exception("escopo nao fechado...");
+              else return new If(expr, body, elses, other);
+            } else throw Util::Exception("if sem escopo...");
           }
 
           return nullptr;
@@ -166,43 +161,41 @@ namespace DJ {
         Node *parseFn(Iter &tok) {
           auto _tok = tok;
 
-          if (!!tok && cmp(*tok, Type::Identifier)) {
+          if (!!tok && (*tok).type == Type::Identifier) {
             auto type = *tok++;
 
-            if (!!tok && cmp(*tok, Type::Identifier)) {
+            if (!!tok && (*tok).type == Type::Identifier) {
               auto name = *tok++;
 
-              if (!!tok && cmp(*tok, Type::Symbol, "(")) {
+              if (!!tok && cmp(*tok++, Type::Symbol, "(")) {
                 Util::LinkedList<Node *> vars;
 
                 while (true) {
-                  auto var = parseVar(++tok);
+                  auto var = parseVar(tok);
 
                   if (!!tok && cmp(*tok, Type::Symbol, ",")) {
                     ++tok;
 
-                    if (!var) throw Util::Exception("fn[1]");
+                    if (!var) throw Util::Exception("e esse `,`?");
                   }
 
                   if (var) vars.push_back(var);
                   else break;
                 }
                 
-                if (!!tok && !cmp(*tok++, Type::Symbol, ")")) throw Util::Exception("fn[2]");
-
-                if (!!tok && cmp(*tok++, Type::Symbol, "{")) {
+                if (!tok || !cmp(*tok++, Type::Symbol, ")")) throw Util::Exception("lista de variaveis nao fechada...");
+                else if (!!tok && cmp(*tok++, Type::Symbol, "{")) {
                   Util::LinkedList<Node *> body;
 
                   while (true) {
-                    auto stmt = parseStmt(++tok);
+                    auto stmt = parseStmt(tok);
                     if (stmt) body.push_back(stmt);
                     else break;
                   }
 
-                  if (!!tok && !cmp(*tok++, Type::Symbol, "}")) throw Util::Exception("fn[4]");
-
-                  return new Function(toa(type), toa(name), vars, body);
-                } else throw Util::Exception("fn[3]");
+                  if (!tok || !cmp(*tok++, Type::Symbol, "}")) throw Util::Exception("escopo nao fechado...");
+                  else return new Function(toa(type), toa(name), vars, body);
+                } else Util::Exception("funcao sem escopo...");
               }
             }
           }
@@ -214,15 +207,15 @@ namespace DJ {
         Node *parseVar(Iter &tok) {
           auto _tok = tok;
 
-          if (!!tok && cmp(*tok, Type::Identifier)) {
+          if (!!tok && (*tok).type == Type::Identifier) {
             auto type = *tok++;
 
-            if (!!tok && cmp(*tok, Type::Identifier)) {
+            if (!!tok && (*tok).type == Type::Identifier) {
               auto name = *tok++;
               Node *value = nullptr;
 
               if (!!tok && cmp(*tok, Type::Symbol, "=")) {
-                if (!(value = parseExpr(++tok))) throw Util::Exception("var[1]");
+                if (!(value = parseExpr(++tok))) throw Util::Exception("declaracao sem valor...");
               }
 
               return new Var(toa(type), toa(name), value);
@@ -239,49 +232,44 @@ namespace DJ {
           Node *node;
 
           if (node = parseAssign(tok)) return node;
-          if (node = parseCall(tok)) return node;
-          if (node = parseValue(tok)) return node;
+          else if (node = parseCall(tok)) return node;
+          else if (node = parseValue(tok)) return node;
+          else if ((*tok).type == Type::Symbol) {
+            Node *expr;
 
-          if (cmp(*tok, Type::Symbol, "!")) {
-            auto expr = parseExpr(++tok);
-            if (!expr) throw Util::Exception("expr[1]");
-            return new Expr(Op::Not, expr, nullptr);
+            if (cmpstr(*tok, "!")) {
+              expr = parseExpr(++tok);
+              if (!expr) throw Util::Exception("sem expressao... `!`");
+              else return new Expr(Op::Not, expr, nullptr);
+            } else if (cmpstr(*tok, "+")) {
+              expr = parseExpr(++tok);
+              if (!expr) throw Util::Exception("sem expressao... `+`");
+              else return new Expr(Op::Major, expr, nullptr);
+            } else if (cmpstr(*tok, "-")) {
+              expr = parseExpr(++tok);
+              if (!expr) throw Util::Exception("sem expressao... `-`");
+              else return new Expr(Op::Minus, expr, nullptr);
+            } else if (cmpstr(*tok, "(")) {
+              expr = parseExpr(++tok);
+              if (!expr) throw Util::Exception("sem expressao...");
+              else if (!tok || !cmp(*tok++, Type::Symbol, ")")) throw Util::Exception("expressao nao fechada");
+              else return expr;
+            }
           }
-
-          if (cmp(*tok, Type::Symbol, "+")) {
-            auto expr = parseExpr(++tok);
-            if (!expr) throw Util::Exception("expr[2]");
-            return new Expr(Op::Major, expr, nullptr);
-          }
-
-          if (cmp(*tok, Type::Symbol, "-")) {
-            auto expr = parseExpr(++tok);
-            if (!expr) throw Util::Exception("expr[3]");
-            return new Expr(Op::Minus, expr, nullptr);
-          }
-
-          if (cmp(*tok, Type::Symbol, "(")) {
-            auto expr = parseExpr(++tok);
-            if (!expr) throw Util::Exception("expr[4]");
-            if (!!tok && !cmp(*tok++, Type::Symbol, ")")) throw Util::Exception("expr[5]");
-            return expr;
-          }
-
+          
           return node;
         }
         
         Node *parseAssign(Iter &tok) {
           auto _tok = tok;
 
-          if (!!tok && cmp(*tok, Type::Identifier)) {
+          if (!!tok && (*tok).type == Type::Identifier) {
             auto name = *tok++;
 
             if (!!tok && cmp(*tok, Type::Symbol, "=")) {
               auto value = parseExpr(++tok);
-
-              if (!value) throw Util::Exception("assign[1]");
-
-              return new Assign(toa(name), value);
+              if (!value) throw Util::Exception("atribuicao sem valor...");
+              else return new Assign(toa(name), value);
             }
           }
 
@@ -292,26 +280,26 @@ namespace DJ {
         Node *parseCall(Iter &tok) {
           auto _tok = tok;
 
-          if (!!tok && cmp(*tok, Type::Identifier)) {
+          if (!!tok && (*tok).type == Type::Identifier) {
             auto name = *tok++;
 
-            if (!!tok && cmp(*tok, Type::Symbol, "(")) {
+            if (!!tok && cmp(*tok++, Type::Symbol, "(")) {
               Util::LinkedList<Node *> args;
 
               while (true) {
-                auto value = parseExpr(++tok);
+                auto value = parseExpr(tok);
 
                 if (!!tok && cmp(*tok, Type::Symbol, ",")) {
                   ++tok;
 
-                  if (!value) throw Util::Exception("call[1]");
+                  if (!value) throw Util::Exception("e esse `,`?");
                 }
 
                 if (value) args.push_back(value);
                 else break;
               }
               
-              if (!!tok && !cmp(*tok++, Type::Symbol, ")")) throw Util::Exception("call[2]");
+              if (!tok || !cmp(*tok++, Type::Symbol, ")")) throw Util::Exception("lista de args n fechada...");
             }
           }
           
@@ -322,22 +310,18 @@ namespace DJ {
         Node *parseValue(Iter &tok) {
           if (!tok) return nullptr;
 
-          switch ((*tok).type) {
-            case Type::Integer: return new Int(toi(*tok++));
-            case Type::Decimal: return new Float(tof(*tok++));
-            case Type::String: return new String(toa(*tok++));
-            default:
-              if (cmp(*tok, Type::Identifier, "true")) {
-                ++tok;
-                return new Bool(true);
-              }
+          auto _tok = tok++;
 
-              if (cmp(*tok, Type::Identifier, "false")) {
-                ++tok;
-                return new Bool(false);
-              }
-              
-              if (cmp(*tok, Type::Identifier)) return new Id(toa(*tok++));
+          switch ((*_tok).type) {
+            case Type::Integer: return new Int(toi(*_tok));
+            case Type::Decimal: return new Float(tof(*_tok));
+            case Type::String: return new String(toa(*_tok));
+            case Type::Identifier:
+              if (cmpstr(*_tok, "true")) return new Bool(true);
+              else if (cmpstr(*_tok, "false")) return new Bool(false);
+              else return new Id(toa(*_tok));
+            default:
+              tok = _tok;
               return nullptr;
           }
         }
@@ -345,11 +329,10 @@ namespace DJ {
 
       Node *node;
 
-      each:
-        if ((node = fns.parseStmt(tok))) {
-          nodes.push_back(node);
-          goto each;
-        }
+      each: if ((node = fns.parseStmt(tok))) {
+        nodes.push_back(node);
+        goto each;
+      }
 
       return nodes;
     }

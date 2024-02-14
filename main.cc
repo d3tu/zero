@@ -12,7 +12,7 @@ int main() {
   using namespace DJ::Lexer;
   using namespace DJ::Parser;
 
-  LinkedList<int *> list;
+  using Node = DJ::Parser::Node;
 
   try {
     std::ifstream file("./main.dj");
@@ -26,7 +26,7 @@ int main() {
     auto tokens = tokenize(str.c_str());
     auto nodes = parse(tokens);
 
-    if (*nodes.begin()) {
+    if ((Function *) *nodes.begin()) {
       return 0;
     } else {
       return 1;
