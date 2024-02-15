@@ -2,90 +2,83 @@
 
 #include <iostream>
 
+#include "util.hh"
+#include "lexer.hh"
+#include "parser.hh"
+#include "bytecode.hh"
+#include "runtime.hh"
 #include "embed.hh"
 
-bool strcmp(const char *str0, const char *str1) {
+bool cmp(const char *str0, const char *str1) {
   auto p0 = str0, p1 = str1;
-
-  while (*p0 && (*p0 == *p1)) {
-    ++p0;
-    ++p1;
-  }
-
+  while (*p0 && (*p0 == *p1)) { ++p0; ++p1; }
   return *p0 == *p1;
 }
 
-int strlen(const char *str) {
-  auto p = str;
-  int l = 0;
-
-  while (*p) {
-    ++l;
-    ++p;
-  }
-
+int len(const char *str) {
+  auto p = str; int l = 0;
+  while (*p) { ++l; ++p; }
   return l;
 }
 
-const char *strair(int length) {
-  auto r = new char[length];
-  auto p = r;
-
-  while (p - r < length) {
-    *p++ = ' ';
-  }
-
-  *p = '\0';
-
-  return r;
-}
-
-const char *strcpy(const char *str, int length) {
-  auto value = new char[length];
-  auto p = value;
-  while (p - value < length) {
-    *p = str[p - value];
-    ++p;
-  }
-  *p = '\0';
-  return value;
+const char *tab(int size) {
+  auto r = new char[size]; auto p = r;
+  while (p - r < size) *p++ = ' ';
+  *p = '\0'; return r;
 }
 
 int main(int argc, char **argv) {
-  if (DJ::Embed::isEmbed(argv[0])) {
-    auto data = DJ::Embed::decodeBinary(argv[0]);
-    std::cout << strcpy(data.data, data.size) << std::endl;
-    return 0;
-  }
+  using namespace std;
+  using namespace DJ::Util;
+  using namespace DJ::Lexer;
+  using namespace DJ::Parser;
+  using namespace DJ::Bytecode;
+  using namespace DJ::Runtime;
+  using namespace DJ::Embed;
 
-  if (argc < 2 || strcmp("--help", argv[1]) || strcmp("-h", argv[1])) {
-    auto air = strair(strlen(argv[0]));
-    std::cout << argv[0] << " run ./main.dj" << std::endl;
-    std::cout << air << " embed ./main.dj ./main.exe" << std::endl;
-    std::cout << air << " --help (or -h)" << std::endl;
-    std::cout << air << " --version (or -v)" << std::endl;
-  }
+  try {
+    if (isEmbed(argv[0])) return exec(decodeBinary(argv[0]));
+    else if (argc < 2 || cmp("--help", argv[1]) || cmp("-h", argv[1])) {
+      auto air = tab(len(argv[0]));
+      cout << argv[0] << " run ./main.dj" << " (run code directly)" << endl;
+      cout << air << " embed ./main.dj ./main.exe" << " (embed code in executable)" << endl;
+      cout << air << " --help (or -h)" << " (show command's usage)" << endl;
+      cout << air << " --version (or -v)" << " (show dj version)" << endl;
+    } else if (cmp("--version", argv[1]) || cmp("-v", argv[1])) {
+      cout << DJ_VERSION << endl;
+    } else if (cmp("run", argv[1])) {
+      if (argc > 2) {
+        auto source = readBinary(argv[2]);
+        auto tokens = tokenize(source);
+        auto nodes = parse(tokens);
+        auto byteCode = compile(nodes);
+        return exec(byteCode);
+      } else throw Exception("usage: dj run ./main.dj");
+    } else if (cmp("embed", argv[1])) {
+      if (argc > 2) {
+        #ifdef _WIN32
+          static auto out = "main.exe";
+        #else
+          static auto out = "main";
+        #endif
 
-  if (strcmp("embed", argv[1])) {
-    if (argc > 2) {
-      #ifdef _WIN32
-        static auto out = "main.exe";
-      #else
-        static auto out = "main";
-      #endif
+        auto source = readBinary(argv[2]);
+        auto tokens = tokenize(source);
+        auto nodes = parse(tokens);
+        auto byteCode = compile(nodes);
 
-      DJ::Embed::encodeBinary(argv[0], out, "embedded", 9);
-      
-      #ifdef __unix__
-        #include <sys/stat.h>
-        chmod(out, 0777);
-      #endif
+        encodeBinary(argv[0], out, byteCode, byteCode.size);
+        
+        #ifdef __unix__
+          #include <sys/stat.h>
+          chmod(out, 0777);
+        #endif
+      } else throw Exception("usage: dj embed ./main.dj");
     }
+  } catch (Exception &err) {
+    cerr << err.what() << endl;
+    return EXIT_FAILURE;
   }
 
-  if (strcmp("--version", argv[1]) || strcmp("-v", argv[1])) {
-    std::cout << DJ_VERSION << std::endl;
-  }
-
-  return 0;
+  return EXIT_SUCCESS;
 }

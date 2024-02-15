@@ -44,7 +44,7 @@ namespace DJ {
       Util::LinkedList<Token> tokens;
 
       static auto isAIR = [](char c) {
-        return c == ' ' || c == '\n' || c == '\r';
+        return c == ' ' || c == '\n' || c == '\r' || '\t';
       };
 
       static auto isNUM = [](char c) {
@@ -65,7 +65,7 @@ namespace DJ {
       const char *p = source;
 
       while (*p != '\0') if (isNUM(*p)) {
-        Token token { Type::Integer, p++ };
+        Token token { Type::Integer, p++, nullptr };
         bool flag = false;
 
         while (true) {
@@ -80,18 +80,18 @@ namespace DJ {
         token.end = p - 1;
         tokens.push_back(token);
       } else if (isVAL(*p)) {
-        Token token { Type::Identifier, p++ };
+        Token token { Type::Identifier, p++, nullptr };
         while (isVAL(*p) || isNUM(*p)) ++p;
         token.end = p - 1;
         tokens.push_back(token);
       } else if (*p == '"') {
-        Token token { Type::String, ++p };
-        while (*p != '"' || *p != '\n' || *p != '\0') if (*p++ == '\\') ++p;
+        Token token { Type::String, ++p, nullptr };
+        while (*p && *p != '"' && *p != '\n') if (*p++ == '\\') ++p;
         if (*p != '"') throw Util::Exception("StringNotClosed");
         token.end = p++ - 1;
         tokens.push_back(token);
       } else if (*p == '\'') {
-        Token token { Type::Char, ++p };
+        Token token { Type::Char, ++p, nullptr };
         if (*p == '\\') ++p;
         token.end = p - 1;
         if (*++p != '\'') throw Util::Exception("CharNotClosed");

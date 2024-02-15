@@ -15,6 +15,10 @@ namespace DJ {
     struct Data {
       std::streamsize size;
       char *data;
+
+      operator char *() const {
+        return data;
+      }
     };
 
     void setWindowsBinaryToGui(char *bin, size_t size) {

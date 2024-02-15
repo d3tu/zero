@@ -72,12 +72,12 @@ namespace DJ {
           name(name), value(value) {}
     };
 
-    class Function : public Node {
+    class Fn : public Node {
       public:
         const char *type, *name;
         Util::LinkedList<Node *> vars, body;
 
-        Function(decltype(type) type, decltype(name) name, decltype(vars) vars, decltype(body) body):
+        Fn(decltype(type) type, decltype(name) name, decltype(vars) vars, decltype(body) body):
           type(type), name(name), vars(vars), body(body) {}
     };
 
@@ -130,10 +130,10 @@ namespace DJ {
         Node *parseStmt(Iter &tok) {
           Node *node;
 
-          if (node = parseIf(tok)) return node;
-          else if (node = parseFn(tok)) return node;
-          else if (node = parseVar(tok)) return node;
-          else if (node = parseExpr(tok)) return node;
+          if ((node = parseIf(tok))) return node;
+          else if ((node = parseFn(tok))) return node;
+          else if ((node = parseVar(tok))) return node;
+          else if ((node = parseExpr(tok))) return node;
           else return node;
         }
 
@@ -194,7 +194,7 @@ namespace DJ {
                   }
 
                   if (!tok || !cmp(*tok++, Type::Symbol, "}")) throw Util::Exception("escopo nao fechado...");
-                  else return new Function(toa(type), toa(name), vars, body);
+                  else return new Fn(toa(type), toa(name), vars, body);
                 } else Util::Exception("funcao sem escopo...");
               }
             }
@@ -231,9 +231,9 @@ namespace DJ {
 
           Node *node;
 
-          if (node = parseAssign(tok)) return node;
-          else if (node = parseCall(tok)) return node;
-          else if (node = parseValue(tok)) return node;
+          if ((node = parseAssign(tok))) return node;
+          else if ((node = parseCall(tok))) return node;
+          else if ((node = parseValue(tok))) return node;
           else if ((*tok).type == Type::Symbol) {
             Node *expr;
 
@@ -300,6 +300,7 @@ namespace DJ {
               }
               
               if (!tok || !cmp(*tok++, Type::Symbol, ")")) throw Util::Exception("lista de args n fechada...");
+              else return new Call(toa(name), args);
             }
           }
           
