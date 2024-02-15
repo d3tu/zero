@@ -197,6 +197,14 @@ namespace DJ {
           return true;
         }
 
+        static bool handleChar(Char *node) {
+          if (!node) return false;
+          auto p = node->value;
+          while (*p) byteCode.push_back(*p++);
+          byteCode.push_back('\0');
+          return true;
+        }
+
         static bool handleInt(Int *node) {
           if (!node) return false;
           auto data = reinterpret_cast<char *>(&node->value);

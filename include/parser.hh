@@ -22,6 +22,22 @@ namespace DJ {
           value(value) {}
     };
 
+    class Bool : public Node {
+      public:
+        bool value;
+
+        Bool(decltype(value) value):
+          value(value) {}
+    };
+
+    class Char : public Node {
+      public:
+        const char *value;
+
+        Char(decltype(value) value):
+          value(value) {}
+    };
+
     class Int : public Node {
       public:
         int value;
@@ -30,19 +46,11 @@ namespace DJ {
           value(value) {}
     };
 
-    class Bool : public Node {
-      public:
-        bool value;
-
-        Bool(decltype(value)  value):
-          value(value) {}
-    };
-
     class Float : public Node {
       public:
         float value;
 
-        Float(decltype(value)  value):
+        Float(decltype(value) value):
           value(value) {}
     };
 
@@ -314,6 +322,7 @@ namespace DJ {
           auto _tok = tok++;
 
           switch ((*_tok).type) {
+            case Type::Char: return new Char(toa(*_tok));
             case Type::Integer: return new Int(toi(*_tok));
             case Type::Decimal: return new Float(tof(*_tok));
             case Type::String: return new String(toa(*_tok));
