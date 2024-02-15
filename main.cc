@@ -1,38 +1,90 @@
+#define DJ_VERSION "djLang version: beat (0.0.0) [alpha]"
+
 #include <iostream>
-#include <fstream>
-#include <sstream>
-#include <string>
 
-#include "util.hh"
-#include "lexer.hh"
-#include "parser.hh"
+#include "embed.hh"
 
-int main() {
-  using namespace DJ::Util;
-  using namespace DJ::Lexer;
-  using namespace DJ::Parser;
+bool strcmp(const char *str0, const char *str1) {
+  auto p0 = str0, p1 = str1;
 
-  using Node = DJ::Parser::Node;
+  while (*p0 && (*p0 == *p1)) {
+    ++p0;
+    ++p1;
+  }
 
-  try {
-    std::ifstream file("./main.dj");
-    
-    std::stringstream ss;
-    ss << file.rdbuf();
-    file.close();
+  return *p0 == *p1;
+}
 
-    std::string str = ss.str();
+int strlen(const char *str) {
+  auto p = str;
+  int l = 0;
 
-    auto tokens = tokenize(str.c_str());
-    auto nodes = parse(tokens);
+  while (*p) {
+    ++l;
+    ++p;
+  }
 
-    if ((Function *) *nodes.begin()) {
-      return 0;
-    } else {
-      return 1;
+  return l;
+}
+
+const char *strair(int length) {
+  auto r = new char[length];
+  auto p = r;
+
+  while (p - r < length) {
+    *p++ = ' ';
+  }
+
+  *p = '\0';
+
+  return r;
+}
+
+const char *strcpy(const char *str, int length) {
+  auto value = new char[length];
+  auto p = value;
+  while (p - value < length) {
+    *p = str[p - value];
+    ++p;
+  }
+  *p = '\0';
+  return value;
+}
+
+int main(int argc, char **argv) {
+  if (DJ::Embed::isEmbed(argv[0])) {
+    auto data = DJ::Embed::decodeBinary(argv[0]);
+    std::cout << strcpy(data.data, data.size) << std::endl;
+    return 0;
+  }
+
+  if (argc < 2 || strcmp("--help", argv[1]) || strcmp("-h", argv[1])) {
+    auto air = strair(strlen(argv[0]));
+    std::cout << argv[0] << " run ./main.dj" << std::endl;
+    std::cout << air << " embed ./main.dj ./main.exe" << std::endl;
+    std::cout << air << " --help (or -h)" << std::endl;
+    std::cout << air << " --version (or -v)" << std::endl;
+  }
+
+  if (strcmp("embed", argv[1])) {
+    if (argc > 2) {
+      #ifdef _WIN32
+        static auto out = "main.exe";
+      #else
+        static auto out = "main";
+      #endif
+
+      DJ::Embed::encodeBinary(argv[0], out, "embedded", 9);
+      
+      #ifdef __unix__
+        #include <sys/stat.h>
+        chmod(out, 0777);
+      #endif
     }
-  } catch (Exception &err) {
-    std::cout << err.what() << std::endl;
+  }
+
+  if (strcmp("--version", argv[1]) || strcmp("-v", argv[1])) {
+    std::cout << DJ_VERSION << std::endl;
   }
 
   return 0;
