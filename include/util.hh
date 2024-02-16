@@ -34,6 +34,23 @@ namespace DJ {
           tail = node;
         }
 
+        void pop_back() {
+          if (!head) return;
+          if (head == tail) {
+            delete head;
+            head = nullptr;
+            tail = nullptr;
+          } else {
+            auto node = tail->prev;
+            delete tail;
+            tail = node;
+            tail->next = nullptr;
+          }
+        }
+        
+        T &first() { return head->data; }
+        T &last() { return tail->data; }
+
         class Iterator {
           Node<T> *curr;
 

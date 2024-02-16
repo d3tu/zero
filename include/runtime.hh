@@ -2,51 +2,45 @@
 
 #include <iostream>
 
-#include "util.hh"
-#include "embed.hh"
 #include "bytecode.hh"
 
 namespace DJ {
   namespace Runtime {
-    int exec(Embed::Data bytecode) {
+    short readShort(const char *bytes) { return (*bytes << 8) | *(bytes + 1); }
+    int readInt(const char *bytes) { return (*bytes << 24) | (*(bytes + 1) << 16) | (*(bytes + 2) << 8) | (*(bytes + 3)); }
+
+    int exec(const char *bytes) {
       using namespace Bytecode;
 
-      auto i = bytecode.data;
+      auto p = bytes;
 
-      auto setPos = [&](int pos) {
-        i = bytecode.data + pos;
-      };
+      Util::LinkedList<int> stack;
 
-      Util::LinkedList<void *> stack;
-
-      std::cout << "bin: ";
-      while (i - bytecode.data < bytecode.size) std::cout << std::hex << (int) *i++ << " ";
-      std::cout << std::endl << std::endl;
-
-      i = bytecode.data;
-
-      while (i - bytecode.data < bytecode.size) {
-        std::cout << "op: " << (int) *i << ", i: " << i - bytecode.data << std::endl;
-
-        switch (*i) {
-          case OpCode::CALL: {
-            auto org = i++;
-            auto to = *i;
-
-            stack.push_back(org);
-            setPos(to);
-
+      while (*p) {
+        switch (*p) {
+          case OpCode::JMP: {
+            p = bytes + *++p;
             continue;
           }
 
-          case OpCode::RET:
-            break;
+          case OpCode::CALL: {
+            p = bytes + *++p;
+            stack.push_back(*++p);
+            continue;
+          }
 
-          default:
-            throw Util::Exception("UnknownInstruction");
+          case OpCode::RET: {
+            stack.pop_back();
+            p = bytes + stack.last();
+            break;
+          }
+
+          case OpCode::HLT: return 0;
+          
+          default: throw Util::Exception("UnknownInstruction");
         }
 
-        ++i;
+        ++p;
       }
 
       return 0;
