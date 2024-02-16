@@ -1,26 +1,16 @@
 #pragma once
-
 #include <fstream>
-
 namespace DJ {
   namespace Embed {
-    struct Info {
-      std::streamsize data_pos;
-    };
-
+    struct Info { std::streamsize data_pos; };
     const char MAGIC[] = {'d', 'j', 'l', '4', 'n', 'g', '!', '!'};
-    long long int MAGIC_SIZE = sizeof(MAGIC) / sizeof(*MAGIC);
-    long long int INFO_SIZE = sizeof(Info) + MAGIC_SIZE;
-
+    long long MAGIC_SIZE = sizeof(MAGIC) / sizeof(*MAGIC);
+    long long INFO_SIZE = sizeof(Info) + MAGIC_SIZE;
     struct Data {
       std::streamsize size;
       char *data;
-
-      operator char *() const {
-        return data;
-      }
+      operator char *() const { return data; }
     };
-
     void setWindowsBinaryToGui(char *bin, size_t size) {
       if (size < 64) throw;
       unsigned int start_pe = *reinterpret_cast<const unsigned int *>(&bin[60]);
@@ -34,7 +24,6 @@ namespace DJ {
       unsigned short subsystem = 2;
       memcpy(&bin[subsystem_start], &subsystem, sizeof(subsystem));
     }
-
     bool isEmbed(const char *path) {
       std::ifstream file(path, std::ios::binary | std::ios::ate);
       file.seekg(-INFO_SIZE, std::ios::end);
@@ -47,34 +36,22 @@ namespace DJ {
       delete[] bytes;
       return result;
     }
-
     char *encodeInfo(Info info) {
       auto data = new char[INFO_SIZE];
       auto p = data;
-      while (p - data < MAGIC_SIZE) {
-        *p = MAGIC[p - data];
-        ++p;
-      }
+      while (p - data < MAGIC_SIZE) { *p = MAGIC[p - data]; ++p; }
       auto bytes = reinterpret_cast<char *>(&info);
-      while (p - data < INFO_SIZE) {
-        *p = bytes[p - data - MAGIC_SIZE];
-        ++p;
-      }
+      while (p - data < INFO_SIZE) { *p = bytes[p - data - MAGIC_SIZE]; ++p; }
       return data;
     }
-
     Info *decodeInfo(char *bytes) {
       auto p = bytes;
       while (p - bytes < INFO_SIZE && MAGIC[p - bytes] == *p) ++p;
       if (*(p - 1) != MAGIC[p - bytes - 1]) throw;
       auto data = new char[INFO_SIZE - MAGIC_SIZE];
-      while (p - bytes < INFO_SIZE) {
-        data[p - bytes - MAGIC_SIZE] = *p;
-        ++p;
-      }
+      while (p - bytes < INFO_SIZE) { data[p - bytes - MAGIC_SIZE] = *p; ++p; }
       return reinterpret_cast<Info *>(data);
     }
-
     Data readBinary(const char *path) {
       std::ifstream file(path, std::ios::binary | std::ios::ate);
       if (!file.is_open()) throw;
@@ -85,7 +62,6 @@ namespace DJ {
       file.close();
       return { size, data };
     }
-
     void encodeBinary(const char *input, const char *output, const char *data, int size, bool no_terminal = false) {
       std::ofstream file(output, std::ios::binary);
       auto executable = readBinary(input);
@@ -97,7 +73,6 @@ namespace DJ {
       file.write(encodeInfo({ executable.size }), INFO_SIZE);
       file.close();
     }
-
     Data decodeBinary(const char *path) {
       std::ifstream file(path, std::ios::binary | std::ios::ate);
       file.seekg(-INFO_SIZE, std::ios::end);
