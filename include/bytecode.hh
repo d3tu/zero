@@ -18,9 +18,9 @@ namespace DJ {
     template <typename K, typename V> struct KV { K key; V value; };
     template <typename K, typename V> class LinkedMap : Util::LinkedList<KV<K, V>> {
       public:
-        void set(K key, V value) { push_back({ key, value }); }
+        void set(K key, V value) { this->push_back({ key, value }); }
         V *get(K key) {
-          for (KV<K, V> &kv : list) if (kv.key == key) return &kv.value;
+          for (KV<K, V> &kv : *this) if (kv.key == key) return &kv.value;
           return nullptr;
         }
     };
@@ -32,10 +32,11 @@ namespace DJ {
       static LinkedMap<str, decltype(p)> locals;
       static struct {
         static bool handleStmt(Node *node) {
-          return !!node
-            && handleIf((If *) *node)
-            || handleFn((Fn *) *node)
-            || handleVar((Var *) *node);
+          return !!node && (
+            handleIf((If *) *node) ||
+            handleFn((Fn *) *node) ||
+            handleVar((Var *) *node)
+          );
         }
         static bool handleIf(If *node) {
           if (!node) return false;

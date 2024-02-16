@@ -1,5 +1,8 @@
 #define DJ_VERSION "djLang version: beat (0.0.0) [alpha]"
 #include <iostream>
+#define DEBUG(message) std::cout << "\033[34m" << "[DEBUG]" << "\033[0m " << (message) << std::endl;
+#define WARN(message)  std::cout << "\033[33m" << "[WARN]"  << "\033[0m " << (message) << std::endl;
+#define ERROR(message) std::cerr << "\033[31m" << "[ERROR]" << "\033[0m " << (message) << std::endl;
 #include "parser.hh"
 #include "runtime.hh"
 bool cmp(const char *str0, const char *str1) {
@@ -42,7 +45,7 @@ int main(int argc, char **argv) {
         auto nodes = parse(tokens);
         auto byteCode = compile(nodes);
         return exec(byteCode);
-      } else throw Exception("usage: dj run ./main.dj");
+      } else std::cout << "Usage: dj run ./main.dj" << std::endl;
     } else if (cmp("embed", argv[1])) {
       if (argc > 2) {
         #ifdef _WIN32
@@ -59,10 +62,10 @@ int main(int argc, char **argv) {
           #include <sys/stat.h>
           chmod(out, 0777);
         #endif
-      } else throw Exception("usage: dj embed ./main.dj");
+      } else std::cout << "Usage: dj embed ./main.dj" << std::endl;
     }
   } catch (Exception &err) {
-    cerr << err.what() << endl;
+    ERROR(err.what())
     return EXIT_FAILURE;
   }
   return EXIT_SUCCESS;

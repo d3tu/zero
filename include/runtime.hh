@@ -12,11 +12,13 @@ namespace DJ {
       while (*p) {
         switch (*p) {
           case OpCode::JMP: {
-            p = bytes + *++p;
+            auto offset = *++p;
+            p = bytes + offset;
             continue;
           }
           case OpCode::CALL: {
-            p = bytes + *++p;
+            auto offset = *++p;
+            p = bytes + offset;
             stack.push_back(*++p);
             continue;
           }
