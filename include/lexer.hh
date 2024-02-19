@@ -115,6 +115,10 @@ namespace Core {
 
             ++p;
           }
+          
+          if (*(p - 1) == '.') {
+            throw Util::Exception("DotNotAllowed");
+          }
 
           token.end = p - 1;
           tokens.push(token);
