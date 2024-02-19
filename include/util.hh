@@ -12,7 +12,7 @@
 #define PUSH(VALUE) VALUES.push(VALUE);
 #define POP VALUES.pop()
 
-namespace DJ {
+namespace Core {
   namespace Util {
     class Exception {
       protected:

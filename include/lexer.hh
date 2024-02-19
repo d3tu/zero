@@ -2,7 +2,7 @@
 
 #include "util.hh"
 
-namespace DJ {
+namespace Core {
   namespace Lexer {
     enum class Type {
       Id, Int, Float, String, Char, Symbol

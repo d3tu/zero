@@ -4,7 +4,7 @@
 #include "lexer.hh"
 #include "types.hh"
 
-namespace DJ {
+namespace Core {
   namespace Parser {
     Util::LinkedList<Stmt *> parse(Util::LinkedList<Lexer::Token> tokens) {
       using namespace Util;

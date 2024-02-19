@@ -2,7 +2,7 @@
 
 #include "util.hh"
 
-namespace DJ {
+namespace Core {
   namespace Parser {
     class Stmt {
       public:

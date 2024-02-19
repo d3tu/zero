@@ -5,12 +5,12 @@
 
 int main() {
   try {
-    DJ::Parser::parse(DJ::Lexer::tokenize("jump label"));
+    Core::Parser::parse(Core::Lexer::tokenize("jump label"));
 
     return 0;
   } catch (const char *error) {
     std::cout << error << std::endl;
-  } catch (DJ::Util::Exception &error) {
+  } catch (Core::Util::Exception &error) {
     std::cout << error.what() << std::endl;
   }
 
