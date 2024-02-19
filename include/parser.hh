@@ -14,8 +14,6 @@ namespace DJ {
 
       auto tok = tokens.begin();
       
-      using Iter = decltype(tok);
-      
       static auto cmp = [](Token token, const char *value) {
         auto p0 = value;
         auto p1 = token.start;
@@ -307,6 +305,8 @@ namespace DJ {
 
         LinkedList<Stmt *> scope;
 
+        SAVE(&expr)
+
         while (true) {
           SAVE(&scope)
           CALL(parseStmt)
@@ -319,6 +319,8 @@ namespace DJ {
         if (!tok || (*tok).type != Type::Symbol || !cmp(*tok, "}")) {
           throw Exception("WhileScopeNotClosed");
         }
+
+        RESTORE(expr);
 
         PUSH(new While(expr, scope))
         RET

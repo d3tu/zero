@@ -14,7 +14,7 @@ namespace DJ {
       const char *end;
     };
 
-    static const char *toa(Token token) {
+    const char *toa(Token token) {
       auto value = new char[token.end - token.start + 1];
 
       auto p0 = token.start;
@@ -29,7 +29,7 @@ namespace DJ {
       return value;
     }
 
-    static int toi(Token token) {
+    int toi(Token token) {
       int value = 0;
 
       auto p = token.start;
@@ -41,7 +41,7 @@ namespace DJ {
       return value;
     }
 
-    static float tof(Token token) {
+    float tof(Token token) {
       float value = .0;
       float depth = .0;
 
@@ -62,19 +62,19 @@ namespace DJ {
       return value;
     }
 
-    static auto isAIR = [](char c) {
+    auto isAIR = [](char c) {
       return c == ' ' || c == '\n' || c == '\r' || '\t';
     };
 
-    static auto isNUM = [](char c) {
+    auto isNUM = [](char c) {
       return c >= '0' && c <= '9';
     };
 
-    static auto isVAL = [](char c) {
+    auto isVAL = [](char c) {
       return (c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z') || c == '$' || c == '_';
     };
     
-    static auto isSYM = [](char c) {
+    auto isSYM = [](char c) {
       static const char *SYMBOLS = "!#%&()*+,-./:;<=>?@[]^{|}~";
 
       auto p = SYMBOLS;
