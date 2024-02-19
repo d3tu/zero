@@ -14,7 +14,7 @@ namespace DJ {
       const char *end;
     };
 
-    const char *toa(Token token) {
+    static const char *toa(Token token) {
       auto value = new char[token.end - token.start + 1];
 
       auto p0 = token.start;
@@ -29,7 +29,7 @@ namespace DJ {
       return value;
     }
 
-    int toi(Token token) {
+    static int toi(Token token) {
       int value = 0;
 
       auto p = token.start;
@@ -41,7 +41,7 @@ namespace DJ {
       return value;
     }
 
-    float tof(Token token) {
+    static float tof(Token token) {
       float value = .0;
       float depth = .0;
 
@@ -63,30 +63,30 @@ namespace DJ {
     }
 
     static auto isAIR = [](char c) {
-        return c == ' ' || c == '\n' || c == '\r' || '\t';
-      };
+      return c == ' ' || c == '\n' || c == '\r' || '\t';
+    };
 
-      static auto isNUM = [](char c) {
-        return c >= '0' && c <= '9';
-      };
+    static auto isNUM = [](char c) {
+      return c >= '0' && c <= '9';
+    };
 
-      static auto isVAL = [](char c) {
-        return (c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z') || c == '$' || c == '_';
-      };
+    static auto isVAL = [](char c) {
+      return (c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z') || c == '$' || c == '_';
+    };
+    
+    static auto isSYM = [](char c) {
+      static const char *SYMBOLS = "!#%&()*+,-./:;<=>?@[]^{|}~";
+
+      auto p = SYMBOLS;
       
-      static auto isSYM = [](char c) {
-        static const char *SYMBOLS = "!#%&()*+,-./:;<=>?@[]^{|}~";
-
-        auto p = SYMBOLS;
-        
-        while (*p != '\0') {
-          if (*p++ == c) {
-            return true;
-          }
+      while (*p != '\0') {
+        if (*p++ == c) {
+          return true;
         }
+      }
 
-        return false;
-      };
+      return false;
+    };
 
     Util::LinkedList<Token> tokenize(const char *src) {
       Util::LinkedList<Token> tokens;

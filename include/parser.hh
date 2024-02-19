@@ -3,8 +3,6 @@
 #include "util.hh"
 #include "lexer.hh"
 #include "types.hh"
-#include "stack.hh"
-#include "header.hh"
 
 namespace DJ {
   namespace Parser {
@@ -12,7 +10,7 @@ namespace DJ {
       using namespace Util;
       using namespace Lexer;
 
-      Util::LinkedList<Stmt *> nodes;
+      LinkedList<Stmt *> nodes;
 
       auto tok = tokens.begin();
       
@@ -92,7 +90,7 @@ namespace DJ {
 
         ++tok;
         
-        list scope;
+        LinkedList<Stmt *> scope;
         
         SAVE(&expr)
 
@@ -111,7 +109,7 @@ namespace DJ {
 
         ++tok;
 
-        list other;
+        LinkedList<Stmt *> other;
 
         if (!!tok && (*tok).type == Type::Id && cmp(*tok, "else")) {
           ++tok;
@@ -240,7 +238,7 @@ namespace DJ {
 
         ++tok;
 
-        list args;
+        LinkedList<Stmt *> args;
 
         SAVE(&type);
         SAVE(&name);
@@ -266,7 +264,7 @@ namespace DJ {
 
         ++tok;
 
-        list scope;
+        LinkedList<Stmt *> scope;
 
         while (true) {
           SAVE(&scope)
@@ -307,7 +305,7 @@ namespace DJ {
 
         ++tok;
 
-        list scope;
+        LinkedList<Stmt *> scope;
 
         while (true) {
           SAVE(&scope)
@@ -486,7 +484,7 @@ namespace DJ {
 
         SAVE(&name)
         
-        list args;
+        LinkedList<Stmt *> args;
 
         while (true) {
           SAVE(&args)

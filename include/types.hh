@@ -13,30 +13,26 @@ namespace DJ {
         }
     };
 
-    using str = const char *;
-
-    using list = Util::LinkedList<Stmt *>;
-
     class Var : public Stmt {
       public:
         bool mut;
 
-        str type;
-        str name;
+        const char *type;
+        const char *name;
 
         Stmt *value;
 
-        Var(bool mut, str type, str name, Stmt *value):
+        Var(bool mut, const char *type, const char *name, Stmt *value):
           mut(mut), type(type), name(name), value(value) {}
     };
 
     class Assign : public Stmt {
       public:
-        str name;
+        const char *name;
 
         Stmt *value;
 
-        Assign(str name, Stmt *value):
+        Assign(const char *name, Stmt *value):
           name(name), value(value) {}
     };
 
@@ -44,32 +40,32 @@ namespace DJ {
       public:
         Stmt *expr;
 
-        list scope;
-        list other;
+        Util::LinkedList<Stmt *> scope;
+        Util::LinkedList<Stmt *> other;
 
-        If(Stmt *expr, list scope, list other):
+        If(Stmt *expr, Util::LinkedList<Stmt *> scope, Util::LinkedList<Stmt *> other):
           expr(expr), scope(scope), other(other) {}
     };
     
     class Method : public Stmt {
       public:
-        str type;
-        str name;
+        const char *type;
+        const char *name;
 
-        list args;
-        list scope;
+        Util::LinkedList<Stmt *> args;
+        Util::LinkedList<Stmt *> scope;
 
-        Method(str type, str name, list args, list scope):
+        Method(const char *type, const char *name, Util::LinkedList<Stmt *> args, Util::LinkedList<Stmt *> scope):
           type(type), name(name), args(args), scope(scope) {}
     };
 
     class Call : public Stmt {
       public:
-        str name;
+        const char *name;
 
-        list args;
+        Util::LinkedList<Stmt *> args;
 
-        Call(str name, list args):
+        Call(const char *name, Util::LinkedList<Stmt *> args):
           name(name), args(args) {}
     };
     
@@ -77,9 +73,9 @@ namespace DJ {
       public:
         Stmt *expr;
         
-        list scope;
+        Util::LinkedList<Stmt *> scope;
 
-        While(Stmt *expr, list scope):
+        While(Stmt *expr, Util::LinkedList<Stmt *> scope):
           expr(expr), scope(scope) {}
     };
 
@@ -93,17 +89,17 @@ namespace DJ {
 
     class Label : public Stmt {
       public:
-        str name;
+        const char *name;
 
-        Label(str name):
+        Label(const char *name):
           name(name) {}
     };
 
     class Jump : public Stmt {
       public:
-        str name;
+        const char *name;
 
-        Jump(str name):
+        Jump(const char *name):
           name(name) {}
     };
 
@@ -134,9 +130,9 @@ namespace DJ {
 
         Type type;
 
-        str value;
+        const char *value;
 
-        Value(Type type, str value):
+        Value(Type type, const char *value):
           type(type), value(value) {}
     };
   }
