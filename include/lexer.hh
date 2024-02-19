@@ -168,7 +168,7 @@ namespace Core {
           tokens.push(token);
         } else if (isSYM(*p)) {
           if (*p == '/') {
-            if (*(p + 1) && *(p + 1) == '/') {
+            if (p + 1 && *(p + 1) == '/') {
               p += 2;
 
               while (*p && *p != '\n') {
