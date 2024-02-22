@@ -1,5 +1,5 @@
 .vscode
-old
+.old
 *.exe
 *.z
 *.o

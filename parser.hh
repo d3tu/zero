@@ -230,6 +230,7 @@ namespace Core {
 
         if (*((*t).end + 1) != '\n' || *((*t).end + 1) != '\r') {
           if (!!tok && (*tok).type == Type::Id) {
+            CALL(parseValue)
             PUSH(new Continue(POP))
             RET
           }

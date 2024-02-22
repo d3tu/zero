@@ -44,12 +44,13 @@ namespace Core {
 
       public:
         void push(T data) {
-          auto node = new Node {
-            data, tail, nullptr
-          };
+          auto node = new Node { data, tail, nullptr };
 
-          if (!head) head = node;
-          else tail->next = node;
+          if (!head) {
+            head = node;
+          } else {
+            tail->next = node;
+          }
 
           tail = node;
         }
@@ -58,13 +59,17 @@ namespace Core {
           if (head) {
             if (head == tail) {
               delete head;
+
               head = nullptr;
               tail = nullptr;
             } else {
               auto node = tail->prev;
+
+              node->next = nullptr;
+
               delete tail;
+
               tail = node;
-              tail->next = nullptr;
             }
           }
         }
@@ -113,9 +118,10 @@ namespace Core {
         }
     };
 
-    template <typename T> class Stack {
+    template <typename T>
+    class Stack {
       struct Item {
-        T value;
+        T data;
         Item *next;
       };
 
@@ -125,7 +131,9 @@ namespace Core {
         ~Stack() {
           while (top) {
             auto item = top;
+
             top = item->next;
+            
             delete item;
           }
         }
@@ -134,22 +142,26 @@ namespace Core {
           return !top;
         }
 
-        void push(T value) {
-          top = new Item { value, top };
-          if (!top) throw "BadAlloc";
-        }
-
-        void pick() {
-          
+        void push(T data) {
+          if (!(top = new Item { data, top })) {
+            throw Exception("BadAlloc");
+          }
         }
 
         T pop() {
-          if (!top) throw "OutOfRange";
           auto item = top;
-          auto value = item->value;
+
+          if (!item) {
+            throw Exception("OutOfRange");
+          }
+
+          auto data = item->data;
+
           top = item->next;
+          
           delete item;
-          return value;
+
+          return data;
         }
     };
   }

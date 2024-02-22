@@ -2,6 +2,7 @@
 
 #include <iostream>
 #include <iomanip>
+#include <thread>
 
 #define DEBUG_INIT "[DEBUG/VM]"
 #define DEBUG(msg) std::cout << "\033[34m" << DEBUG_INIT << "\033[0m " << msg << std::endl
@@ -20,30 +21,28 @@ namespace Core {
 
     void exec(const char *bytes) {
       auto p = bytes;
-      
-      std::cout << std::endl;
 
       p = bytes;
 
-      each: switch (*p) {
-        case HLT: {
-          auto init = p - bytes;
-          DEBUG(init << ": HLT");
-          return;
+      std::thread([&]() {
+        each: switch (*p) {
+          case HLT: {
+            auto init = p - bytes;
+
+            return;
+          }
+
+          case JMP: {
+            auto init = p - bytes;
+
+            auto to = readInt(++p);
+
+            p = bytes + to;
+
+            goto each;
+          }
         }
-
-        case JMP: {
-          auto init = p - bytes;
-
-          auto to = readInt(++p);
-
-          p = bytes + to;
-
-          // DEBUG(init << ": JMP " << to);
-
-          goto each;
-        }
-      }
+      }).join();
     }
   }
 }

@@ -25,9 +25,34 @@ namespace Core {
       *(src + 3) = value & 0xff;
     }
 
+    const char *toa(int n) {
+      int temp = n;
+      int size = 0;
+
+      while (temp > 0) {
+        ++size;
+        temp /= 10;
+      }
+
+      auto res = new char[size + 1];
+
+      for (int i = size - 1; i >= 0; i--) {
+        res[i] = n % 10 + '0';
+        n /= 10;
+      }
+      
+      res[size] = '\0';
+
+      return res;
+    }
+
     struct Buffer {
       const char *data;
       int size;
+
+      operator const char*() {
+        return data;
+      }
     };
 
     Buffer gen(Util::LinkedList<Parser::Stmt *> nodes) {
@@ -38,6 +63,7 @@ namespace Core {
       auto it = nodes.begin();
       
       int size = 0;
+      int idCounter = 0;
 
       Stack<void *> locals;
       Stack<void *> backup;
@@ -95,7 +121,7 @@ namespace Core {
           RET
         }
 
-        CALL(genGoto)
+        CALL(genContinue)
         if (POP) {
           PUSH(true)
           RET
@@ -110,6 +136,12 @@ namespace Core {
         PUSH(false)
         RET
       }
+
+      // cmp expr, true
+      // jne _if_id_next
+      // ; ...
+      // _if_id_next:
+      // ; ...
       
       genIf: {
         PUSH(false)
@@ -120,6 +152,9 @@ namespace Core {
         PUSH(false)
         RET
       }
+
+      // name:
+      // ; ...
       
       genLabel: {
         auto stmt = (Label *) **it;
@@ -136,6 +171,10 @@ namespace Core {
         PUSH(true)
         RET
       }
+
+      // name:
+      // ; ...
+      // ret
       
       genMethod: {
         auto stmt = (Method *) **it;
@@ -154,8 +193,20 @@ namespace Core {
         PUSH(false)
         RET
       }
+
+      // _for_id_start:
+      // ; ...
+      // jmp _for_id_start
+
+      // _for_id_start:
+      // cmp expr, true
+      // jne _for_id_end
+      // ; ...
+      // jmp _for_id_start
+      // _for_id_end:
+      // ; ...
       
-      genWhile: {
+      genFor: {
         auto stmt = (For *) **it;
 
         if (!stmt) {
@@ -163,11 +214,22 @@ namespace Core {
           RET
         }
 
-        
+        SAVE(&it);
+
+        it = stmt->scope.begin();
+
+        while (true) {
+          CALL(genStmt)
+          if (!POP) break;
+        }
+
+        RESTORE(it);
 
         PUSH(false)
         RET
       }
+
+      // mov name, value
       
       genAssign: {
         PUSH(false)
@@ -178,11 +240,17 @@ namespace Core {
         PUSH(false)
         RET
       }
+
+      // push value
+      // call name
       
       genCall: {
         PUSH(false)
         RET
       }
+      
+      // push value
+      // ret
       
       genReturn: {
         auto stmt = (Return *) **it;
@@ -200,29 +268,39 @@ namespace Core {
         RET
       }
 
-      genGoto: {
-        auto stmt = (Goto *) **it;
+      // jmp name
 
+      // jmp _stmt_id_abc
+
+      genContinue: {
+        auto stmt = (Continue *) **it;
+        
         if (!stmt) {
           PUSH(false)
           RET
         }
+        
+        if (stmt->expr) {
+          auto name = (Value *) *stmt->expr;
+          
+          out.push({ JMP, size++ });
+          waiting_labels.push({ name->value, size });
 
-        out.push({ JMP, size++ });
-        waiting_labels.push({ stmt->name, size });
+          size += sizeof(int);
 
-        size += sizeof(int);
+          ++it;
 
-        ++it;
+          PUSH(true)
+          RET
+        } else {
+          ++it;
+        }
 
-        PUSH(true)
-        RET
-      }
-      
-      genContinue: {
         PUSH(false)
         RET
       }
+
+      // jmp _stmt_id_end
       
       genBreak: {
         PUSH(false)

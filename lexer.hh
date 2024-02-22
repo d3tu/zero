@@ -4,7 +4,7 @@
 
 namespace Core {
   namespace Lexer {
-    enum class Type { Id, Int, Float, String, Char, Symbol };
+    enum class Type { Id, Int, Char, Float, String, Symbol };
     
     struct Token {
       Type type;
