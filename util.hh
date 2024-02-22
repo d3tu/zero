@@ -139,6 +139,10 @@ namespace Core {
           if (!top) throw "BadAlloc";
         }
 
+        void pick() {
+          
+        }
+
         T pop() {
           if (!top) throw "OutOfRange";
           auto item = top;

@@ -1,6 +1,6 @@
 CXX = g++
-CXXFLAGS = -O3 -flto -Wall -Wextra -I include
-TARGET = dj
+CXXFLAGS = -O3 -flto -Wall -Wextra
+TARGET = zero
 SOURCE = main.cc
 OBJECTS = main.o
 

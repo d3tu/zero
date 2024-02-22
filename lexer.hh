@@ -4,9 +4,7 @@
 
 namespace Core {
   namespace Lexer {
-    enum class Type {
-      Id, Int, Float, String, Char, Symbol
-    };
+    enum class Type { Id, Int, Float, String, Char, Symbol };
     
     struct Token {
       Type type;
@@ -62,24 +60,24 @@ namespace Core {
       return value;
     }
 
-    auto isAIR = [](char c) {
+    bool isAIR(char c) {
       return c == ' ' || c == '\n' || c == '\r' || '\t';
     };
 
-    auto isNUM = [](char c) {
+    bool isNUM(char c) {
       return c >= '0' && c <= '9';
     };
 
-    auto isVAL = [](char c) {
+    bool isVAL(char c) {
       return (c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z') || c == '$' || c == '_';
     };
     
-    auto isSYM = [](char c) {
-      static const char *SYMBOLS = "!#%&()*+,-./:;<=>?@[]^{|}~";
+    bool isSYM(char c) {
+      static auto SYMBOLS = "!#%&()*+,-./:;<=>?@[]^{|}~";
 
       auto p = SYMBOLS;
       
-      while (*p != '\0') {
+      while (*p) {
         if (*p++ == c) {
           return true;
         }
@@ -88,25 +86,20 @@ namespace Core {
       return false;
     };
 
-    Util::LinkedList<Token> tokenize(const char *src) {
+    Util::LinkedList<Token> lex(const char *source) {
       Util::LinkedList<Token> tokens;
 
-      auto p = src;
+      auto p = source;
 
       while (*p) {
         if (isNUM(*p)) {
-          Token token {
-            Type::Int, p++, nullptr
-          };
-          
-          bool flag = false;
+          Token token { Type::Int, p++, nullptr };
 
           while (true) {
             if (*p == '.') {
-              if (flag) {
+              if (token.type == Type::Float) {
                 throw Util::Exception("DotAlreadyUsed");
               } else {
-                flag = true;
                 token.type = Type::Float;
               }
             } else if (!isNUM(*p)) {
@@ -121,39 +114,20 @@ namespace Core {
           }
 
           token.end = p - 1;
+
           tokens.push(token);
         } else if (isVAL(*p)) {
-          Token token {
-            Type::Id, p++, nullptr
-          };
+          Token token { Type::Id, p++, nullptr };
 
           while (isVAL(*p) || isNUM(*p)) {
             ++p;
           }
 
           token.end = p - 1;
-          tokens.push(token);
-        } else if (*p == '"') {
-          Token token {
-            Type::String, ++p, nullptr
-          };
-          
-          while (*p && *p != '"' && *p != '\n') {
-            if (*p++ == '\\') {
-              ++p;
-            }
-          }
 
-          if (*p != '"') {
-            throw Util::Exception("StringNotClosed");
-          }
-
-          token.end = p++ - 1;
           tokens.push(token);
         } else if (*p == '\'') {
-          Token token {
-            Type::Char, ++p, nullptr
-          };
+          Token token { Type::Char, ++p, nullptr };
           
           if (*p == '\\') {
             ++p;
@@ -166,24 +140,34 @@ namespace Core {
           }
 
           tokens.push(token);
-        } else if (isSYM(*p)) {
-          if (*p == '/') {
-            if (p + 1 && *(p + 1) == '/') {
-              p += 2;
-
-              while (*p && *p != '\n') {
-                ++p;
-              }
-
-              continue;
+        } else if (*p == '"') {
+          Token token { Type::String, ++p, nullptr };
+          
+          while (*p && *p != '"' && *p != '\n') {
+            if (*p++ == '\\') {
+              ++p;
             }
           }
 
-          tokens.push({
-            Type::Symbol,
-            p,
-            p++
-          });
+          if (*p != '"') {
+            throw Util::Exception("StringNotClosed");
+          }
+
+          token.end = p++ - 1;
+
+          tokens.push(token);
+        } else if (isSYM(*p)) {
+          if (*p == '/' && (*p + 1) == '/') {
+            p += 2;
+
+            while (*p && *p != '\n') {
+              ++p;
+            }
+
+            continue;
+          }
+
+          tokens.push({ Type::Symbol, p, p++ });
         } else if (isAIR(*p)) {
           ++p;
         } else {

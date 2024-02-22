@@ -8,7 +8,8 @@ namespace Core {
       public:
         virtual ~Stmt() = default;
 
-        template <typename T> operator T *() {
+        template <typename T>
+        operator T *() {
           return dynamic_cast<T *>(this);
         }
     };
@@ -69,13 +70,13 @@ namespace Core {
           name(name), args(args) {}
     };
     
-    class While : public Stmt {
+    class For : public Stmt {
       public:
         Stmt *expr;
         
         Util::LinkedList<Stmt *> scope;
 
-        While(Stmt *expr, Util::LinkedList<Stmt *> scope):
+        For(Stmt *expr, Util::LinkedList<Stmt *> scope):
           expr(expr), scope(scope) {}
     };
 
@@ -91,19 +92,28 @@ namespace Core {
       public:
         const char *name;
 
+        bool a = false;
+
         Label(const char *name):
           name(name) {}
     };
 
-    class Jump : public Stmt {
+    class Goto : public Stmt {
       public:
         const char *name;
 
-        Jump(const char *name):
+        bool b = true;
+
+        Goto(const char *name):
           name(name) {}
     };
 
-    class Continue : public Stmt {};
+    class Continue : public Stmt {
+      public:
+        Stmt *expr;
+
+        Continue(Stmt *expr): expr(expr) {}
+    };
 
     class Break : public Stmt {};
 
