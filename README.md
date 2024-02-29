@@ -3,8 +3,8 @@
 ```
 [x] lexer
 [x] parser
-[ ] generator
-[ ] runtime
+[~] generator
+[~] runtime
 [ ] cli
 [ ] embedder
 [ ] plugins

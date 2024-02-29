@@ -47,10 +47,10 @@ namespace Core {
     }
 
     struct Buffer {
-      const char *data;
+      char *data;
       int size;
 
-      operator const char*() {
+      operator char *() const {
         return data;
       }
     };
@@ -90,11 +90,9 @@ namespace Core {
 
       char *data;
 
-      each: {
-        if (!!it) {
-          CALL(genStmt)
-          goto each;
-        }
+      while (true) {
+        CALL(genStmt)
+        if (!POP) break;
       }
 
       data = new char[size];
@@ -260,7 +258,7 @@ namespace Core {
           RET
         }
 
-        out.push({ HLT, size++ });
+        out.push({ INSTR_HLT, size++ });
 
         ++it;
 
@@ -283,7 +281,7 @@ namespace Core {
         if (stmt->expr) {
           auto name = (Value *) *stmt->expr;
           
-          out.push({ JMP, size++ });
+          out.push({ INSTR_JMP_M, size++ });
           waiting_labels.push({ name->value, size });
 
           size += sizeof(int);
