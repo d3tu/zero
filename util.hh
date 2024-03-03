@@ -28,6 +28,7 @@ namespace Core {
         }
 
         Exception(const Exception &) = delete;
+        
         Exception &operator=(const Exception &) = delete;
     };
 
@@ -35,12 +36,10 @@ namespace Core {
     class LinkedList {
       struct Node {
         T data;
-        Node *prev;
-        Node *next;
+        Node *prev, *next;
       };
 
-      Node *head = nullptr;
-      Node *tail = nullptr;
+      Node *head = nullptr, *tail = nullptr;
 
       public:
         void push(T data) {
@@ -60,8 +59,7 @@ namespace Core {
             if (head == tail) {
               delete head;
 
-              head = nullptr;
-              tail = nullptr;
+              head = tail = nullptr;
             } else {
               auto node = tail->prev;
 

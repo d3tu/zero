@@ -8,8 +8,7 @@ namespace Core {
       public:
         virtual ~Stmt() = default;
 
-        template <typename T>
-        operator T *() {
+        template <typename T> operator T *() {
           return dynamic_cast<T *>(this);
         }
     };
@@ -18,8 +17,7 @@ namespace Core {
       public:
         bool mut;
 
-        const char *type;
-        const char *name;
+        const char *type, *name;
 
         Stmt *value;
 
@@ -41,8 +39,7 @@ namespace Core {
       public:
         Stmt *expr;
 
-        Util::LinkedList<Stmt *> scope;
-        Util::LinkedList<Stmt *> other;
+        Util::LinkedList<Stmt *> scope, other;
 
         If(Stmt *expr, Util::LinkedList<Stmt *> scope, Util::LinkedList<Stmt *> other):
           expr(expr), scope(scope), other(other) {}
@@ -50,11 +47,9 @@ namespace Core {
     
     class Method : public Stmt {
       public:
-        const char *type;
-        const char *name;
+        const char *type, *name;
 
-        Util::LinkedList<Stmt *> args;
-        Util::LinkedList<Stmt *> scope;
+        Util::LinkedList<Stmt *> args, scope;
 
         Method(const char *type, const char *name, Util::LinkedList<Stmt *> args, Util::LinkedList<Stmt *> scope):
           type(type), name(name), args(args), scope(scope) {}
@@ -92,19 +87,7 @@ namespace Core {
       public:
         const char *name;
 
-        bool a = false;
-
         Label(const char *name):
-          name(name) {}
-    };
-
-    class Goto : public Stmt {
-      public:
-        const char *name;
-
-        bool b = true;
-
-        Goto(const char *name):
           name(name) {}
     };
 
@@ -120,13 +103,10 @@ namespace Core {
     class Expr : public Stmt {
       public:
         enum Op {
-          Not, Plus, Minus, Add, Sub, Mul, Div
-        };
+          Not, Plus, Minus, Add, Sub, Mul, Div, E, NE, L, LE, G, GL
+        } op;
 
-        Op op;
-
-        Stmt *left;
-        Stmt *right;
+        Stmt *left, *right;
 
         Expr(Op op, Stmt *left, Stmt *right):
           op(op), left(left), right(right) {}
@@ -136,9 +116,7 @@ namespace Core {
       public:
         enum Type {
           Id, Bool, Char, Short, Int, Long, Float, Double, String
-        };
-
-        Type type;
+        } type;
 
         const char *value;
 

@@ -2,7 +2,7 @@
 
 #include "util.hh"
 #include "lexer.hh"
-#include "types.hh"
+#include "ext.hh"
 
 namespace Core {
   namespace Parser {
