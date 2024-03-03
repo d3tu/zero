@@ -80,10 +80,10 @@ namespace Core {
     }
 
     struct Buffer {
-      char *data;
+      const char *data;
       int size;
 
-      operator char *() const {
+      operator const char *() const {
         return data;
       }
     };
